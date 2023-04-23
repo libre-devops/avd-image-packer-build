@@ -31,7 +31,7 @@ parameters:
 
   - name: TERRAFORM_PATH
     type: string
-    default: "azdo-agent-scale-sets/terraform"
+    default: "avd-image-packer-build/terraform"
     displayName: "What is the path to your terraform code?"
 
   - name: TERRAFORM_VERSION
@@ -72,7 +72,7 @@ parameters:
 
   - name: PACKER_PATH
     type: string
-    default: "packer/linux/ubuntu/2204"
+    default: "packer/windows/10"
     displayName: "What is the path to your packer code?"
 
   - name: PACKER_FILE_NAME
@@ -142,7 +142,7 @@ stages:
               TERRAFORM_STORAGE_ACCOUNT_NAME: $(SpokeSaName)
               TERRAFORM_BLOB_CONTAINER_NAME: $(SpokeSaBlobContainerName)
               TERRAFORM_STORAGE_KEY: $(SpokeSaPrimaryKey)
-              TERRAFORM_STATE_NAME: "${{ parameters.SHORTHAND_PROJECT_NAME }}-${{ parameters.SHORTHAND_LOCATION_NAME }}-pre-req.terraform.tfstate"
+              TERRAFORM_STATE_NAME: "ldo-uat-win10-pre-req.terraform.tfstate"
               TERRAFORM_WORKSPACE_NAME: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
               TERRAFORM_COMPLIANCE_PATH: "$(Build.SourcesDirectory)/azure-naming-convention/az-terraform-compliance-policy"
               AZURE_TARGET_CLIENT_ID: $(SpokeSvpClientId)
@@ -180,42 +180,3 @@ stages:
               AZURE_TARGET_SUBSCRIPTION_ID: $(SpokeSubID)
               ADD_CLIENT_IP_TO_NSG: ${{ parameters.ADD_CLIENT_IP_TO_NSG }}
               NSG_ID: ${{ parameters.NSG_ID }}
-
-  - stage: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}_ScaleSets"
-    dependsOn: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}_Packer"
-    displayName: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }} ScaleSets Stage"
-
-    jobs:
-      - job: Terraform_Build
-        workspace:
-          clean: all
-        displayName: Terraform Build
-        steps:
-
-          # Declare the repos needed from the resources list
-          - checkout: self
-          - checkout: azure-naming-convention
-
-          # Remotely fetch pipeline template, in this case, I am using one in my development repo.
-          - template: /.azurepipelines/.templates/terraform-cicd-template.yml@terraform-azdo-pipeline-template
-            parameters:
-              SHORTHAND_PROJECT_NAME: ${{ parameters.SHORTHAND_PROJECT_NAME }} # Parameters entered in YAML
-              SHORTHAND_ENVIRONMENT_NAME: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
-              SHORTHAND_LOCATION_NAME: ${{ parameters.SHORTHAND_LOCATION_NAME }}
-              TERRAFORM_PATH: "${{ parameters.TERRAFORM_PATH }}/1-scale-set"
-              TERRAFORM_VERSION: ${{ parameters.TERRAFORM_VERSION }}
-              TERRAFORM_DESTROY: ${{ parameters.TERRAFORM_DESTROY }}
-              TERRAFORM_PLAN_ONLY: ${{ parameters.TERRAFORM_PLAN_ONLY }}
-              TERRAFORM_STORAGE_RG_NAME: $(SpokeSaRgName) # Key Vault variable
-              TERRAFORM_STORAGE_ACCOUNT_NAME: $(SpokeSaName)
-              TERRAFORM_BLOB_CONTAINER_NAME: $(SpokeSaBlobContainerName)
-              TERRAFORM_STORAGE_KEY: $(SpokeSaPrimaryKey)
-              TERRAFORM_STATE_NAME: "${{ parameters.SHORTHAND_PROJECT_NAME }}-${{ parameters.SHORTHAND_LOCATION_NAME }}-scale-sets.terraform.tfstate"
-              TERRAFORM_WORKSPACE_NAME: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
-              TERRAFORM_COMPLIANCE_PATH: "$(Build.SourcesDirectory)/azure-naming-convention/az-terraform-compliance-policy"
-              AZURE_TARGET_CLIENT_ID: $(SpokeSvpClientId)
-              AZURE_TARGET_CLIENT_SECRET: $(SpokeSvpClientSecret)
-              AZURE_TARGET_TENANT_ID: $(SpokeTenantId)
-              AZURE_TARGET_SUBSCRIPTION_ID: $(SpokeSubID)
-              CHECKOV_SKIP_TESTS: ${{ parameters.CHECKOV_SKIP_TESTS }}
-

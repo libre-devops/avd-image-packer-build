@@ -19,16 +19,16 @@ module "image" {
   tags     = module.rg.rg_tags
 
   images = {
-    "lbdo-azdo-ubuntu-22.04" = {
+    "ldo-avd-win-10" = {
       gallery_name             = module.gallery.gallery_name
       is_image_specialised     = false
       image_hyper_v_generation = "V1"
-      image_os_type            = "Linux"
+      image_os_type            = "Windpws"
 
       identifier = {
         publisher = "Libre-DevOps"
-        offer     = "azdo-ubuntu"
-        sku       = "2204"
+        offer     = "avd-windows"
+        sku       = "10"
       }
     },
   }

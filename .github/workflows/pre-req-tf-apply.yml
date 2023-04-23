@@ -28,7 +28,7 @@ jobs:
           terraform-backend-storage-account-name: ${{ secrets.SpokeSaName }}
           terraform-backend-blob-container-name: ${{ secrets.SpokeSaBlobContainerName }}
           terraform-backend-storage-access-key: ${{ secrets.SpokeSaPrimaryKey }}
-          terraform-backend-state-name: "ldo-uat-pre-req.terraform.tfstate"
+          terraform-backend-state-name: "ldo-win10-uat-pre-req.terraform.tfstate"
           terraform-provider-client-id: ${{ secrets.SpokeSvpClientId }}
           terraform-provider-client-secret: ${{ secrets.SpokeSvpClientSecret }}
           terraform-provider-subscription-id: ${{ secrets.SpokeSubId }}

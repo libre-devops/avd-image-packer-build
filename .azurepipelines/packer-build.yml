@@ -41,7 +41,7 @@ parameters:
 
   - name: PACKER_PATH
     type: string
-    default: "packer/linux/ubuntu/2204"
+    default: "packer/windows/10"
     displayName: "What is the path to your packer code?"
 
   - name: PACKER_FILE_NAME
