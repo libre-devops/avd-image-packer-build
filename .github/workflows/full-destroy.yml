@@ -1,4 +1,4 @@
-name: 'Full Deploy'
+name: 'Full Destroy'
 
 # Allow run manually
 on:
