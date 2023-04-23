@@ -31,7 +31,7 @@ parameters:
 
   - name: TERRAFORM_PATH
     type: string
-    default: "avd-image-packer-build/terraform"
+    default: "avd-image-packer-build/terraform/0-pre-req"
     displayName: "What is the path to your terraform code?"
 
   - name: TERRAFORM_VERSION
@@ -51,53 +51,14 @@ parameters:
     type: boolean
 
   - name: TERRAFORM_PLAN_ONLY
-    default: false
+    default: true
     displayName: "Check box to run plan ONLY and never run apply"
     type: boolean
 
   - name: CHECKOV_SKIP_TESTS
     type: string
-    default: 'CKV2_AZURE_1,CKV2_AZURE_18,CKV_AZURE_23,CKV_AZURE_24,CKV2_AZURE_31,CKV_AZURE_33,CKV_AZURE_35,CKV_AZURE_59,CKV_AZURE_97,CKV_AZURE_190,CKV_AZURE_206'
+    default: 'CKV2_AZURE_31'
     displayName: "CheckOV tests to skip if comment skips don't work.  All checks run if parameter is empty, empty by default"
-
-  - name: ADD_CLIENT_IP_TO_NSG
-    type: boolean
-    default: true
-    displayName: Whether your client IP should be added to NSG, if this is set to true, NSG_ID must also be set
-
-  - name: NSG_ID
-    type: string
-    default: "/subscriptions/66d5a5a0-559c-4049-a1b0-7bfd981ed1c7/resourceGroups/rg-ldo-euw-uat-build/providers/Microsoft.Network/networkSecurityGroups/nsg-ldo-euw-uat-01"
-    displayName: The ID of the NSG to add client IP to.
-
-  - name: PACKER_PATH
-    type: string
-    default: "packer/windows/10"
-    displayName: "What is the path to your packer code?"
-
-  - name: PACKER_FILE_NAME
-    type: string
-    default: "packer.pkr.hcl"
-    displayName: "What is the name of your packer file?"
-
-  - name: IMAGE_GALLERY_RG_NAME
-    type: string
-    values:
-      - "rg-ldo-euw-uat-build"
-    default: "rg-ldo-euw-uat-build"
-
-  - name: IMAGE_GALLERY_NAME
-    type: string
-    values:
-      - "galldoeuwuat01"
-    default: "galldoeuwuat01"
-
-  - name: IMAGE_DEFINITION_NAME
-    type: string
-    values:
-      - "ldo-avd-windows-10"
-    default: "ldo-avd-windows-10"
-
 
 # Declare variable group to pass variables to parameters, in this case, a libre-devops keyvault which is using a service principle for authentication
 variables:
@@ -119,12 +80,6 @@ resources:
     name: libre-devops/terraform-azdo-pipeline-template
     ref: main
 
-  - repository: packer-azdo-pipeline-template
-    type: github
-    endpoint: github_service_connection
-    name: libre-devops/packer-azdo-pipeline-template
-    ref: main
-
 # You may wish to use a separate or self-hosted agent per job, by default, all jobs will inherit stage agent
 pool:
   name: Azure Pipelines
@@ -132,56 +87,12 @@ pool:
 
 # Sets stage so that multiple stages can be used if needed, as it stands, only 1 stage is expected and is thus passed as a parameter
 stages:
-
-  - stage: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}_DeleteImage"
-    displayName: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }} Delete Images Stage"
+  - stage: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}"
+    displayName: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }} Stage"
     jobs:
       - job: Terraform_Build
         workspace:
           clean: all
-        pool:
-          vmImage: 'ubuntu-latest'
-        displayName: Delete Images
-        steps:
-
-          # Declare the repos needed from the resources list
-          - checkout: self
-          - checkout: azure-naming-convention
-
-          - bash: |
-              az login --service-principal -u $(SpokeSvpClientId) -p $(SpokeSvpClientSecret) --tenant $(SpokeTenantId) && \
-              
-              ImageVersionNumber=$(az sig image-version list \
-              --gallery-name ${{ parameters.IMAGE_GALLERY_NAME }} \
-              --resource-group ${{ parameters.IMAGE_GALLERY_RG_NAME }} \
-              --gallery-image-definition ${{ parameters.IMAGE_DEFINITION_NAME }} \
-              -o tsv \
-              --query "[].name")
-              
-              for sigImage in $ImageVersionNumber
-              do
-              az sig image-version delete \
-              --gallery-name ${{ parameters.IMAGE_GALLERY_NAME }} \
-              --resource-group ${{ parameters.IMAGE_GALLERY_RG_NAME }} \
-              --gallery-image-definition ${{ parameters.IMAGE_DEFINITION_NAME }} \
-              --gallery-image-version ${sigImage}
-              done
-              
-              az image delete \
-              --resource-group ${{ parameters.IMAGE_GALLERY_RG_NAME }} \
-              --name ${{ parameters.IMAGE_DEFINITION_NAME }}
-            displayName: "Delete all gallery image versions and image resources"
-
-
-  - stage: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}_PreReq"
-    dependsOn: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}_DeleteImage"
-    displayName: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }} PreReq Stage"
-    jobs:
-      - job: Terraform_Build
-        workspace:
-          clean: all
-        pool:
-          vmImage: 'ubuntu-latest'
         displayName: Terraform Build
         steps:
 
@@ -195,7 +106,7 @@ stages:
               SHORTHAND_PROJECT_NAME: ${{ parameters.SHORTHAND_PROJECT_NAME }} # Parameters entered in YAML
               SHORTHAND_ENVIRONMENT_NAME: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
               SHORTHAND_LOCATION_NAME: ${{ parameters.SHORTHAND_LOCATION_NAME }}
-              TERRAFORM_PATH: "${{ parameters.TERRAFORM_PATH }}/0-pre-req"
+              TERRAFORM_PATH: ${{ parameters.TERRAFORM_PATH }}
               TERRAFORM_VERSION: ${{ parameters.TERRAFORM_VERSION }}
               TERRAFORM_DESTROY: ${{ parameters.TERRAFORM_DESTROY }}
               TERRAFORM_PLAN_ONLY: ${{ parameters.TERRAFORM_PLAN_ONLY }}
@@ -203,13 +114,11 @@ stages:
               TERRAFORM_STORAGE_ACCOUNT_NAME: $(SpokeSaName)
               TERRAFORM_BLOB_CONTAINER_NAME: $(SpokeSaBlobContainerName)
               TERRAFORM_STORAGE_KEY: $(SpokeSaPrimaryKey)
-              TERRAFORM_STATE_NAME: "ldo-win10-uat-pre-req.terraform.tfstate""
-              TERRAFORM_WORKSPACE_NAME: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
+              TERRAFORM_STATE_NAME: "ldo-win10-uat-pre-req.terraform.tfstate"
+              TERRAFORM_WORKSPACE_NAME: $(System.StageName)
               TERRAFORM_COMPLIANCE_PATH: "$(Build.SourcesDirectory)/azure-naming-convention/az-terraform-compliance-policy"
               AZURE_TARGET_CLIENT_ID: $(SpokeSvpClientId)
               AZURE_TARGET_CLIENT_SECRET: $(SpokeSvpClientSecret)
               AZURE_TARGET_TENANT_ID: $(SpokeTenantId)
               AZURE_TARGET_SUBSCRIPTION_ID: $(SpokeSubID)
               CHECKOV_SKIP_TESTS: ${{ parameters.CHECKOV_SKIP_TESTS }}
-
-

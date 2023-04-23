@@ -114,7 +114,7 @@ stages:
               TERRAFORM_STORAGE_ACCOUNT_NAME: $(SpokeSaName)
               TERRAFORM_BLOB_CONTAINER_NAME: $(SpokeSaBlobContainerName)
               TERRAFORM_STORAGE_KEY: $(SpokeSaPrimaryKey)
-              TERRAFORM_STATE_NAME: "ldo-uat-win10-pre-req.terraform.tfstate"
+              TERRAFORM_STATE_NAME: "ldo-win10-uat-pre-req.terraform.tfstate"
               TERRAFORM_WORKSPACE_NAME: $(System.StageName)
               TERRAFORM_COMPLIANCE_PATH: "$(Build.SourcesDirectory)/azure-naming-convention/az-terraform-compliance-policy"
               AZURE_TARGET_CLIENT_ID: $(SpokeSvpClientId)
