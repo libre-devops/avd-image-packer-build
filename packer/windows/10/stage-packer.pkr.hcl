@@ -158,7 +158,7 @@ source "azure-arm" "build" {
 # documentation for build blocks can be found here:
 # https://www.packer.io/docs/templates/hcl_templates/blocks/build
 build {
-  sources = ["source.azure-arm.vhd"]
+  sources = ["source.azure-arm.build"]
 
   provisioner "powershell" {
     inline = ["New-Item -Path ${var.image_folder} -ItemType Directory -Force"]
@@ -191,7 +191,7 @@ build {
 
   provisioner "file" {
     destination = "${var.image_folder}\\toolset.json"
-    source      = "${path.root}/toolsets/toolset-2019.json"
+    source      = "${path.root}/toolsets/toolset-10.json"
   }
 
   provisioner "windows-shell" {
