@@ -8,7 +8,7 @@ env:
   REV: "r"
 
 jobs:
-  packer-build:
+  terraform-destroy:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -40,8 +40,9 @@ jobs:
           pip install azure-cli pywinrm
         shell: pwsh
 
-      - name: Add NSG rules if enabled
+      - name: Remove any image versions from gallery
         run: |
+          set -xe
           az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} --tenant ${ARM_TENANT_ID} && \
 
           ImageVersionNumber=$(az sig image-version list \
