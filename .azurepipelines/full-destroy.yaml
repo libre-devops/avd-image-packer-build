@@ -65,11 +65,6 @@ parameters:
     default: true
     displayName: Whether your client IP should be added to NSG, if this is set to true, NSG_ID must also be set
 
-  - name: NSG_ID
-    type: string
-    default: "/subscriptions/66d5a5a0-559c-4049-a1b0-7bfd981ed1c7/resourceGroups/rg-ldo-euw-uat-build/providers/Microsoft.Network/networkSecurityGroups/nsg-ldo-euw-uat-01"
-    displayName: The ID of the NSG to add client IP to.
-
   - name: PACKER_PATH
     type: string
     default: "packer/windows/10"
@@ -203,7 +198,7 @@ stages:
               TERRAFORM_STORAGE_ACCOUNT_NAME: $(SpokeSaName)
               TERRAFORM_BLOB_CONTAINER_NAME: $(SpokeSaBlobContainerName)
               TERRAFORM_STORAGE_KEY: $(SpokeSaPrimaryKey)
-              TERRAFORM_STATE_NAME: "ldo-win10-uat-pre-req.terraform.tfstate""
+              TERRAFORM_STATE_NAME: "ldo-win10-uat-pre-req.terraform.tfstate"
               TERRAFORM_WORKSPACE_NAME: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
               TERRAFORM_COMPLIANCE_PATH: "$(Build.SourcesDirectory)/azure-naming-convention/az-terraform-compliance-policy"
               AZURE_TARGET_CLIENT_ID: $(SpokeSvpClientId)

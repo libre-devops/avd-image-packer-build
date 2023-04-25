@@ -41,6 +41,7 @@ jobs:
 
   packer-build:
     runs-on: ubuntu-latest
+    name: "Packer Build"
     needs: terraform-build
     strategy:
       matrix:

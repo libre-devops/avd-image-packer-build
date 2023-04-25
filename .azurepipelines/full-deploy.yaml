@@ -65,11 +65,6 @@ parameters:
     default: true
     displayName: Whether your client IP should be added to NSG, if this is set to true, NSG_ID must also be set
 
-  - name: NSG_ID
-    type: string
-    default: "/subscriptions/66d5a5a0-559c-4049-a1b0-7bfd981ed1c7/resourceGroups/rg-ldo-euw-uat-build/providers/Microsoft.Network/networkSecurityGroups/nsg-ldo-euw-uat-01"
-    displayName: The ID of the NSG to add client IP to.
-
   - name: PACKER_PATH
     type: string
     default: "packer/windows/10"
@@ -151,32 +146,169 @@ stages:
               AZURE_TARGET_SUBSCRIPTION_ID: $(SpokeSubID)
               CHECKOV_SKIP_TESTS: ${{ parameters.CHECKOV_SKIP_TESTS }}
 
-  - stage: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}_Packer"
+  - stage: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}"
     dependsOn: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}_PreReq"
-    displayName: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }} Packer Stage"
+    displayName: "${{ parameters.SHORTHAND_ENVIRONMENT_NAME }} Stage"
     jobs:
       - job: Packer_Build
         workspace:
           clean: all
-        pool:
-          vmImage: 'ubuntu-latest'
+        timeoutInMinutes: 300
+        variables:
+          PKR_VAR_install_user: "installer"
+          PKR_VAR_install_password: $(LocalLdoAdminUatPwd)
         displayName: Packer Build
+
         steps:
+          - ${{ if eq(parameters.ADD_CLIENT_IP_TO_NSG, true) }}:
 
-          # Declare the repos needed from the resources list
-          - checkout: self
+              - pwsh: |
+                  $OutboundIp = (Invoke-RestMethod -Uri "https://checkip.amazonaws.com" -UseBasicParsing).Trim() ; `
+                  az login --service-principal --username $Env:ARM_CLIENT_ID --password $Env:ARM_CLIENT_SECRET --tenant $Env:ARM_TENANT_ID
+                  az account set --subscription $Env:ARM_SUBSCRIPTION_ID
+                  $nsgId = "$(NsgId)"
 
-          # Remotely fetch pipeline template, in this case, I am using one in my development repo.
-          - template: /.azurepipelines/.templates/packer-cicd-template.yml@packer-azdo-pipeline-template
-            parameters:
-              SHORTHAND_PROJECT_NAME: ${{ parameters.SHORTHAND_PROJECT_NAME }} # Parameters entered in YAML
-              SHORTHAND_ENVIRONMENT_NAME: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
-              SHORTHAND_LOCATION_NAME: ${{ parameters.SHORTHAND_LOCATION_NAME }}
-              PACKER_PATH: ${{ parameters.PACKER_PATH }}
-              PACKER_FILE_NAME: ${{ parameters.PACKER_FILE_NAME }}
-              AZURE_TARGET_CLIENT_ID: $(SpokeSvpClientId)
-              AZURE_TARGET_CLIENT_SECRET: $(SpokeSvpClientSecret)
-              AZURE_TARGET_TENANT_ID: $(SpokeTenantId)
-              AZURE_TARGET_SUBSCRIPTION_ID: $(SpokeSubID)
-              ADD_CLIENT_IP_TO_NSG: ${{ parameters.ADD_CLIENT_IP_TO_NSG }}
-              NSG_ID: ${{ parameters.NSG_ID }}
+                  $subscriptionId = (Split-Path -Path $nsgId -Parent).Split('/')[2]
+                  $resourceGroupName = (Split-Path -Path $nsgId -Parent).Split('/')[4]
+                  $nsgName = Split-Path -Path $nsgId -Leaf ; `
+                  az account set --subscription $subscriptionId
+                  az network nsg rule create `
+                  --nsg-name $nsgName `
+                  --resource-group $resourceGroupName `
+                  --name "AddClientIPInbound" `
+                  --priority 100 `
+                  --source-address-prefixes "${OutboundIp}/32" `
+                  --destination-port-ranges 22 3389 `
+                  --destination-address-prefixes "VirtualNetwork" `
+                  --access Allow `
+                  --protocol Tcp `
+                  --description "Allow inbound access on port to ports, added by Azure DevOps on $(Get-Date) - build - $(Build.BuildId)" ; `
+
+                  az network nsg rule create `
+                  --nsg-name $nsgName `
+                  --resource-group $resourceGroupName `
+                  --name "AddClientIPWinRmInbound" `
+                  --priority 101 `
+                  --source-address-prefixes "${OutboundIp}/32" `
+                  --destination-port-ranges 5985 5986 `
+                  --destination-address-prefixes "VirtualNetwork" `
+                  --access Allow `
+                  --protocol Tcp `
+                  --description "Allow inbound access on port to ports, added by Azure DevOps on $(Get-Date) - build - $(Build.BuildId)"
+
+                displayName: 'Get Outbound IP and add to NSG'
+                continueOnError: false
+                enabled: true
+                env:
+                  ARM_CLIENT_ID: $(SpokeSvpClientId)
+                  ARM_CLIENT_SECRET: $(SpokeSvpClientSecret)
+                  ARM_SUBSCRIPTION_ID: $(SpokeSubId)
+                  ARM_TENANT_ID: $(SpokeTenantId)
+
+              - pwsh: |
+                  if ($IsLinux)
+                  {
+                  $brewShellEnv = & /home/linuxbrew/.linuxbrew/bin/brew shellenv
+                  foreach ($line in $brewShellEnv) {
+                  Invoke-Expression $line
+                  }
+                  brew install packer ; `
+                  packer validate ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }}  ; packer build ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} 
+                  }
+                  elseif ($IsMacOS)
+                  {
+                  $brewShellEnv = & /home/linuxbrew/.linuxbrew/bin/brew shellenv
+                  foreach ($line in $brewShellEnv) {
+                  Invoke-Expression $line
+                  }
+                  brew install packer ; `
+                  packer validate ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }}  ; packer build ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} 
+                  }
+                  elseif ($IsWindows)
+                  {
+                    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+                    choco install packer -y ; `
+                    packer validate ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} ; ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} 
+                  }
+                displayName: 'Packer install, validate and build'
+                continueOnError: false
+                enabled: true
+                env:
+                  PKR_VAR_short: ${{ parameters.SHORTHAND_PROJECT_NAME }}
+                  PKR_VAR_env: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
+                  PKR_VAR_loc: ${{ parameters.SHORTHAND_LOCATION_NAME }}
+                  PKR_VAR_install_password: $(LocalLdoAdminUatPwd)
+
+                  ARM_CLIENT_ID: $(SpokeSvpClientId)
+                  ARM_CLIENT_SECRET: $(SpokeSvpClientSecret)
+                  ARM_SUBSCRIPTION_ID: $(SpokeSubId)
+                  ARM_TENANT_ID: $(SpokeTenantId)
+
+
+              - pwsh: |
+                  az login --service-principal --username $Env:ARM_CLIENT_ID --password $Env:ARM_CLIENT_SECRET --tenant $Env:ARM_TENANT_ID
+                  az account set --subscription $Env:ARM_SUBSCRIPTION_ID
+                  $nsgId = "$(NsgId)"
+                  $subscriptionId = (Split-Path -Path $nsgId -Parent).Split('/')[2]
+                  $resourceGroupName = (Split-Path -Path $nsgId -Parent).Split('/')[4]
+                  $nsgName = Split-Path -Path $nsgId -Leaf ; `
+                  az account set --subscription $subscriptionId
+                  az network nsg rule delete `
+                  --resource-group $resourceGroupName `
+                  --nsg-name $nsgName `
+                  --name "AddClientIPInbound" ; `
+                  az network nsg rule delete `
+                  --resource-group $resourceGroupName `
+                  --nsg-name $nsgName `
+                  --name "AddClientIPWinRmInbound"
+
+                displayName: 'Remove Temporary Rule'
+                continueOnError: true
+                condition: always()
+                enabled: true
+                env:
+                  ARM_CLIENT_ID: $(SpokeSvpClientId)
+                  ARM_CLIENT_SECRET: $(SpokeSvpClientSecret)
+                  ARM_SUBSCRIPTION_ID: $(SpokeSubId)
+                  ARM_TENANT_ID: $(SpokeTenantId)
+
+          - ${{ if eq(parameters.ADD_CLIENT_IP_TO_NSG, false) }}:
+
+              - pwsh: |
+                  if ($IsLinux)
+                  {
+                  $brewShellEnv = & /home/linuxbrew/.linuxbrew/bin/brew shellenv
+                  foreach ($line in $brewShellEnv) {
+                  Invoke-Expression $line
+                  }
+                  brew install packer ; `
+                  packer validate ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }}  ; packer build ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} 
+                  }
+                  elseif ($IsMacOS)
+                  {
+                  $brewShellEnv = & /home/linuxbrew/.linuxbrew/bin/brew shellenv
+                  foreach ($line in $brewShellEnv) {
+                  Invoke-Expression $line
+                  }
+                  brew install packer ; `
+                  packer validate ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }}  ; packer build ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} 
+                  }
+                  elseif ($IsWindows)
+                  {
+                    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+                    choco install packer -y ; `
+                    packer validate ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} ; ${{ parameters.PACKER_PATH }}/${{ parameters.PACKER_FILE_NAME }} 
+                  }
+                displayName: 'Packer install, validate and build'
+                continueOnError: false
+                enabled: true
+                env:
+                  PKR_VAR_short: ${{ parameters.SHORTHAND_PROJECT_NAME }}
+                  PKR_VAR_env: ${{ parameters.SHORTHAND_ENVIRONMENT_NAME }}
+                  PKR_VAR_loc: ${{ parameters.SHORTHAND_LOCATION_NAME }}
+                  PKR_VAR_install_password: $(LocalLdoAdminUatPwd)
+
+                  ARM_CLIENT_ID: $(SpokeSvpClientId)
+                  ARM_CLIENT_SECRET: $(SpokeSvpClientSecret)
+                  ARM_SUBSCRIPTION_ID: $(SpokeSubId)
+                  ARM_TENANT_ID: $(SpokeTenantId)
