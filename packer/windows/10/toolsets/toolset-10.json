@@ -1,0 +1,125 @@
+{
+    "toolcache": [
+        {
+            "name": "Python",
+            "url" : "https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json",
+            "arch": "x64",
+            "platform" : "win32",
+            "versions": [
+                "3.9.*",
+                "3.10.*",
+                "3.11.*"
+            ],
+            "default": "3.9.*"
+        },
+        {
+            "name": "Python",
+            "url" : "https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json",
+            "arch": "x86",
+            "platform" : "win32",
+            "versions": [
+                "3.9.*",
+                "3.10.*",
+                "3.11.*"
+            ]
+        },
+        {
+            "name": "PyPy",
+            "arch": "x86",
+            "platform" : "win64",
+            "versions": [
+                "3.9"
+            ]
+        }
+    ],
+    "powershellModules": [
+        {"name": "DockerMsftProvider"},
+        {"name": "MarkdownPS"},
+        {"name": "Pester"},
+        {"name": "PowerShellGet"},
+        {"name": "PSScriptAnalyzer"},
+        {"name": "PSWindowsUpdate"},
+        {"name": "SqlServer"},
+        {"name": "Microsoft.Graph"},
+        {"name": "AWSPowershell"}
+    ],
+    "azureModules": [
+        {
+            "name": "azurerm",
+            "blob_url": "https://vstsagenttools.blob.core.windows.net/tools/azurepowershellmodules/",
+            "versions": [
+                "6.13.1"
+            ],
+            "zip_versions": [
+                "6.7.0"
+            ],
+            "default": "6.13.1"
+        },
+        {
+            "name": "azure",
+            "blob_url": "https://vstsagenttools.blob.core.windows.net/tools/azurepowershellmodules/",
+            "versions": [
+                "5.3.0"
+            ],
+            "zip_versions": [
+                "5.1.1"
+            ],
+            "default": "5.3.0"
+        },
+        {
+            "name": "az",
+            "url" : "https://raw.githubusercontent.com/Azure/az-ps-module-versions/main/versions-manifest.json",
+            "versions": [
+                "9.3.0"
+            ],
+            "zip_versions": [
+                "6.6.0",
+                "7.5.0"
+            ]
+        }
+    ],
+    "windowsFeatures": [
+        { "name": "Microsoft-Windows-Subsystem-Linux", "optionalFeature": true }
+    ],
+    "docker": {
+        "images": []
+    },
+    "pipx": [
+        {
+            "package": "yamllint",
+            "cmd": "yamllint --version"
+        }
+    ],
+    "dotnet": {
+        "versions": [
+            "3.1",
+            "6.0"
+        ],
+        "tools": [
+            { "name": "nbgv", "test": "nbgv --version", "getversion": "nbgv --version" }
+        ],
+        "warmup": true
+    },
+    "choco": {
+        "common_packages": [
+            { "name": "7zip.install" },
+            { "name": "aria2" },
+            { "name": "azcopy10" },
+            { "name": "Bicep" },
+            { "name": "gitversion.portable" },
+            { "name": "innosetup" },
+            { "name": "jq" },
+            { "name": "NuGet.CommandLine" },
+            { "name": "packer" },
+            { "name": "terraform" },
+            {
+                "name": "cmake.install",
+                "args": [ "--installargs", "ADD_CMAKE_TO_PATH=\"System\"" ]
+            },
+            { "name": "imagemagick" }
+        ]
+    },
+    "openssl": {
+        "version": "1.1.1"
+    }
+}
