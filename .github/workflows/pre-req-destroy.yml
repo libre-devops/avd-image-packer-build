@@ -1,22 +1,78 @@
-name: 'Pre-Req Terraform Destroy'
+name: "Pre-Req Terraform Destroy"
 
-# Allow run manually
-on:
-  workflow_dispatch:
+on: [workflow_dispatch]
+
+env:
+  BUILD_DEFINITION_NAME: "Example"
+  BUILD_DATE: "${{ github.run_id }}"
+  REV: "r"
 
 jobs:
-  azure-terraform-job:
-    name: 'Terraform Build'
+  packer-build:
     runs-on: ubuntu-latest
-    environment: uat
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
+    strategy:
+      matrix:
+        include:
+          - SHORTHAND_ENVIRONMENT_NAME: uat
+            SHORTHAND_PROJECT_NAME: ldo
+            SHORTHAND_LOCATION_NAME: euw
+            ADD_CLIENT_IP_TO_NSG: true
+            NSG_ID_SECRET: NSG_ID
+            INSTALL_PASSWORD_SECRET: LocalLdoAdminUatPwd
+            PACKER_PATH: "packer/windows/10"
+            PACKER_FILE_NAME: "packer.pkr.hcl"
+            IMAGE_GALLERY_RG_NAME: "rg-ldo-euw-uat-build"
+            IMAGE_GALLERY_NAME: "galldoeuwuat01"
+            IMAGE_DEFINITION_NAME: "ldo-avd-windows-10"
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install azure-cli pywinrm
+        shell: pwsh
+
+      - name: Add NSG rules if enabled
+        run: |
+          az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} --tenant ${ARM_TENANT_ID} && \
+
+          ImageVersionNumber=$(az sig image-version list \
+          --gallery-name ${IMAGE_GALLERY_NAME} \
+          --resource-group ${IMAGE_GALLERY_RG_NAME} \
+          --gallery-image-definition ${IMAGE_DEFINITION_NAME} \
+          -o tsv \
+          --query "[].name")
+
+          for sigImage in $ImageVersionNumber
+          do
+          az sig image-version delete \
+          --gallery-name ${IMAGE_GALLERY_NAME} \
+          --resource-group ${IMAGE_GALLERY_RG_NAME} \
+          --gallery-image-definition ${IMAGE_DEFINITION_NAME} \
+          --gallery-image-version ${sigImage}
+          done
+
+          az image delete \
+          --resource-group ${IMAGE_GALLERY_RG_NAME} \
+          --name ${IMAGE_DEFINITION_NAME}
+
+        env:
+          ARM_CLIENT_ID: ${{ secrets.SpokeSvpClientId }}
+          ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubId }}
+          ARM_TENANT_ID: ${{ secrets.SpokeTenantId }}
+          IMAGE_GALLERY_RG_NAME: ${{ matrix.IMAGE_GALLERY_RG_NAME }}
+          IMAGE_GALLERY_NAME: ${{ matrix.IMAGE_GALLERY_NAME }}
+          IMAGE_DEFINITION_NAME: ${{ matrix.IMAGE_DEFINITION_NAME }}
+        shell: bash
 
       - name: Libre DevOps - Run Terraform for Azure - GitHub Action
         id: terraform-build
@@ -38,3 +94,5 @@ jobs:
           run-terraform-destroy: "true"
           run-terraform-plan-only: "false"
           terraform-version: "1.3.9"
+
+
