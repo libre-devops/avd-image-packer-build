@@ -115,14 +115,14 @@ jobs:
 
       - name: Packer install, validate, and build
         run: |
-          $Env:PKR_VAR_install_password = "${{ secrets[matrix.NSG_ID_SECRET] }}"
+          $Env:PKR_VAR_install_password = "${{ secrets[matrix.INSTALL_PASSWORD_SECRET] }}"
           packer validate ${{ matrix.PACKER_PATH }}/${{ matrix.PACKER_FILE_NAME }}
           packer build ${{ matrix.PACKER_PATH }}/${{ matrix.PACKER_FILE_NAME }}
         env:
           PKR_VAR_short: ${{ matrix.SHORTHAND_PROJECT_NAME }}
           PKR_VAR_env: ${{ matrix.SHORTHAND_ENVIRONMENT_NAME }}
           PKR_VAR_loc: ${{ matrix.SHORTHAND_LOCATION_NAME }}
-          PKR_VAR_install_password: ${{ secrets.LocalLdoAdminUatPwd }}
+          PKR_VAR_install_password: ${{ secrets[matrix.INSTALL_PASSWORD_SECRET] }}
           ARM_CLIENT_ID: ${{ secrets.SpokeSvpClientId }}
           ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubId }}
