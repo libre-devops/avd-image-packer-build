@@ -1,6 +1,8 @@
-name: "packer-windows-10-build"
+name: "Packer Build"
 
-on: [workflow_dispatch]
+# Allow run manually
+on:
+  workflow_dispatch:
 
 env:
   BUILD_DEFINITION_NAME: "Example"
@@ -21,6 +23,9 @@ jobs:
             INSTALL_PASSWORD_SECRET: LocalLdoAdminUatPwd
             PACKER_PATH: "packer/windows/10"
             PACKER_FILE_NAME: "packer.pkr.hcl"
+            IMAGE_GALLERY_RG_NAME: "rg-ldo-euw-uat-build"
+            IMAGE_GALLERY_NAME: "galldoeuwuat01"
+            IMAGE_DEFINITION_NAME: "ldo-avd-windows-10"
 
     steps:
       - name: Checkout

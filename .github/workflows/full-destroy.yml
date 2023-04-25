@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  azure-terraform-job:
+  terraform-build:
     name: 'Terraform Build'
     runs-on: ubuntu-latest
     environment: uat
