@@ -1,3 +1,7 @@
+/*
+When starting a VM with the Windows-10-full image, it take around 20 minutes to start up.
+*/
+
 ##### Build Variables  #####
 
 variable "agent_tools_directory" {
