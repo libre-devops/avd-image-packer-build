@@ -19,7 +19,7 @@ module "image" {
   tags     = module.rg.rg_tags
 
   images = {
-    "ldo-avd-win-10" = {
+    "ldo-avd-win-10-fat" = {
       gallery_name             = module.gallery.gallery_name
       is_image_specialised     = false
       image_hyper_v_generation = "V2"
@@ -28,7 +28,19 @@ module "image" {
       identifier = {
         publisher = "Libre-DevOps"
         offer     = "avd-windows"
-        sku       = "10"
+        sku       = "10-fat"
+      }
+    },
+    "ldo-avd-win-11-fat" = {
+      gallery_name             = module.gallery.gallery_name
+      is_image_specialised     = false
+      image_hyper_v_generation = "V2"
+      image_os_type            = "Windows"
+
+      identifier = {
+        publisher = "Libre-DevOps"
+        offer     = "avd-windows"
+        sku       = "11-fat"
       }
     },
   }
