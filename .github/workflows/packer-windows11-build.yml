@@ -21,11 +21,11 @@ jobs:
             ADD_CLIENT_IP_TO_NSG: true
             NSG_ID_SECRET: NSG_ID
             INSTALL_PASSWORD_SECRET: LocalLdoAdminUatPwd
-            PACKER_PATH: "packer/windows/10-fat"
+            PACKER_PATH: "packer/windows/11-fat"
             PACKER_FILE_NAME: "packer.pkr.hcl"
             IMAGE_GALLERY_RG_NAME: "rg-ldo-euw-uat-build"
             IMAGE_GALLERY_NAME: "galldoeuwuat01"
-            IMAGE_DEFINITION_NAME: "ldo-avd-windows-10-fat"
+            IMAGE_DEFINITION_NAME: "ldo-avd-windows-11-fat"
 
     steps:
       - name: Checkout
