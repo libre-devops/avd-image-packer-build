@@ -40,7 +40,7 @@ module "image" {
       identifier = {
         publisher = "Libre-DevOps"
         offer     = "avd-windows"
-        sku       = "10-fat"
+        sku       = "10-thin"
       }
     },
     "ldo-avd-win-11-fat" = {
@@ -64,7 +64,7 @@ module "image" {
       identifier = {
         publisher = "Libre-DevOps"
         offer     = "avd-windows"
-        sku       = "11-fat"
+        sku       = "11-thin"
       }
     },
   }
