@@ -115,7 +115,6 @@ jobs:
 
       - name: Packer install, validate, and build
         run: |
-          $Env:PKR_VAR_install_password = "${{ secrets[matrix.INSTALL_PASSWORD_SECRET] }}"
           packer validate ${{ matrix.PACKER_PATH }}/${{ matrix.PACKER_FILE_NAME }}
           packer build ${{ matrix.PACKER_PATH }}/${{ matrix.PACKER_FILE_NAME }}
         env:

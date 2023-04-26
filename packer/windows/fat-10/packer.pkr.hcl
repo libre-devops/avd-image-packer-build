@@ -32,6 +32,7 @@ variable "install_password" {
   type        = string
   sensitive   = true
   description = "The initial installed password used - needed, over"
+  default     = env("PKR_VAR_install_password")
 }
 
 variable "install_user" {
