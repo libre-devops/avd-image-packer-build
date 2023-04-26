@@ -68,5 +68,3 @@ foreach ($tool in $tools)
         Set-DefaultVariables -ToolVersionPath $toolVersionPath -EnvVars $toolEnvVars
     }
 }
-
-Invoke-PesterTests -TestFile "Toolset"

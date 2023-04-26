@@ -297,7 +297,6 @@ build {
       "${path.root}/scripts/Installers/Install-DotnetSDK.ps1",
       "${path.root}/scripts/Installers/Install-AzureCosmosDbEmulator.ps1",
       "${path.root}/scripts/Installers/Install-RootCA.ps1",
-      "${path.root}/scripts/Installers/Install-BizTalkBuildComponent.ps1",
       "${path.root}/scripts/Installers/Disable-JITDebugger.ps1",
       "${path.root}/scripts/Installers/Configure-DynamicPort.ps1",
       "${path.root}/scripts/Installers/Configure-GDIProcessHandleQuota.ps1",

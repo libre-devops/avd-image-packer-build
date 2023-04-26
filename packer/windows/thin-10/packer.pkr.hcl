@@ -238,6 +238,16 @@ build {
 
   provisioner "powershell" {
     scripts = [
+      "${path.root}/scripts/Installers/Install-CommonUtils.ps1",
+    ]
+  }
+
+  provisioner "windows-restart" {
+    restart_timeout = "10m"
+  }
+
+  provisioner "powershell" {
+    scripts = [
       "${path.root}/scripts/Installers/Install-RootCA.ps1",
       "${path.root}/scripts/Installers/Disable-JITDebugger.ps1",
       "${path.root}/scripts/Installers/Configure-DynamicPort.ps1",
