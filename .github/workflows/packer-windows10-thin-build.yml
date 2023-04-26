@@ -1,4 +1,4 @@
-name: "Packer Build - Win10 - Fat"
+name: "Packer Build - Win10 - Thin"
 
 # Allow run manually
 on:
