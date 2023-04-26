@@ -31,7 +31,31 @@ module "image" {
         sku       = "10-fat"
       }
     },
+     "ldo-avd-win-10-thin" = {
+      gallery_name             = module.gallery.gallery_name
+      is_image_specialised     = false
+      image_hyper_v_generation = "V2"
+      image_os_type            = "Windows"
+
+      identifier = {
+        publisher = "Libre-DevOps"
+        offer     = "avd-windows"
+        sku       = "10-fat"
+      }
+    },
     "ldo-avd-win-11-fat" = {
+      gallery_name             = module.gallery.gallery_name
+      is_image_specialised     = false
+      image_hyper_v_generation = "V2"
+      image_os_type            = "Windows"
+
+      identifier = {
+        publisher = "Libre-DevOps"
+        offer     = "avd-windows"
+        sku       = "11-fat"
+      }
+    },
+    "ldo-avd-win-11-thin" = {
       gallery_name             = module.gallery.gallery_name
       is_image_specialised     = false
       image_hyper_v_generation = "V2"

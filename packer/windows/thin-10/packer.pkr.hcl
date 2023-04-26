@@ -94,7 +94,7 @@ variable "gallery_rg_name" {
 
 variable "image_name" {
   type        = string
-  default     = "ldo-avd-win-10-fat"
+  default     = "ldo-avd-win-10-thin"
   description = "The name of the image"
 }
 
