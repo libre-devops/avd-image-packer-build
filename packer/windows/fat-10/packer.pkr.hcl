@@ -137,7 +137,7 @@ source "azure-arm" "build" {
   os_type         = "Windows"
   image_publisher = "MicrosoftWindowsDesktop"
   image_offer     = "office-365"
-  image_sku       = "win10-22h2-avd-m365-g2" # Office 365 Windows 10 Multi-Session, win11 for same image windows11
+  image_sku       = "win10-22h2-avd-m365-g2"
   vm_size         = "Standard_D4s_v4"
   communicator    = "winrm"
   winrm_insecure  = "true"
