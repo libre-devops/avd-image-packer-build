@@ -1,5 +1,5 @@
 /*
-When starting a VM with the Windows-10-full image, it take around 20 minutes to start up.
+When starting a VM with the Windows-11-full image, it take around 20 minutes to start up.
 */
 
 ##### Build Variables  #####
@@ -43,7 +43,7 @@ variable "install_user" {
 
 locals {
   image_version = formatdate("YYYY.MM.DD", timestamp())
-  image_os      = "windows10"
+  image_os      = "windows11"
 }
 
 ###### Packer Variables ######
@@ -94,7 +94,7 @@ variable "gallery_rg_name" {
 
 variable "image_name" {
   type        = string
-  default     = "ldo-avd-win-10-thin"
+  default     = "ldo-avd-win-11-thin"
   description = "The name of the image"
 }
 
@@ -137,7 +137,7 @@ source "azure-arm" "build" {
   os_type         = "Windows"
   image_publisher = "MicrosoftWindowsDesktop"
   image_offer     = "office-365"
-  image_sku       = "win10-22h2-avd-m365-g2"
+  image_sku       = "win11-22h2-avd-m365"
   vm_size         = "Standard_D4s_v4"
   communicator    = "winrm"
   winrm_insecure  = "true"

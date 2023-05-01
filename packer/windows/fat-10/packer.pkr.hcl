@@ -194,7 +194,7 @@ build {
 
   provisioner "file" {
     destination = "${var.image_folder}\\toolset.json"
-    source      = "${path.root}/toolsets/toolset-10.json"
+    source      = "${path.root}/toolsets/toolset.json"
   }
 
   provisioner "windows-shell" {
