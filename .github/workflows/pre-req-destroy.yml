@@ -42,30 +42,40 @@ jobs:
           pip install azure-cli pywinrm
         shell: pwsh
 
-      - name: Remove any image versions from gallery
+      - name: Remove all image versions from gallery
         run: |
           set -xe
           az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} --tenant ${ARM_TENANT_ID} && \
 
-          ImageVersionNumber=$(az sig image-version list \
+          ImageDefinitions=$(az sig image-definition list \
           --gallery-name ${IMAGE_GALLERY_NAME} \
           --resource-group ${IMAGE_GALLERY_RG_NAME} \
-          --gallery-image-definition ${IMAGE_DEFINITION_NAME} \
           -o tsv \
           --query "[].name")
 
-          for sigImage in $ImageVersionNumber
+          for ImageDefinition in $ImageDefinitions
           do
-          az sig image-version delete \
-          --gallery-name ${IMAGE_GALLERY_NAME} \
-          --resource-group ${IMAGE_GALLERY_RG_NAME} \
-          --gallery-image-definition ${IMAGE_DEFINITION_NAME} \
-          --gallery-image-version ${sigImage}
-          done
+            ImageVersionNumbers=$(az sig image-version list \
+            --gallery-name ${IMAGE_GALLERY_NAME} \
+            --resource-group ${IMAGE_GALLERY_RG_NAME} \
+            --gallery-image-definition ${ImageDefinition} \
+            -o tsv \
+            --query "[].name")
 
-          az image delete \
-          --resource-group ${IMAGE_GALLERY_RG_NAME} \
-          --name ${IMAGE_DEFINITION_NAME}
+            for ImageVersionNumber in $ImageVersionNumbers
+            do
+              az sig image-version delete \
+              --gallery-name ${IMAGE_GALLERY_NAME} \
+              --resource-group ${IMAGE_GALLERY_RG_NAME} \
+              --gallery-image-definition ${ImageDefinition} \
+              --gallery-image-version ${ImageVersionNumber}
+            done
+
+            az sig image-definition delete \
+            --gallery-name ${IMAGE_GALLERY_NAME} \
+            --resource-group ${IMAGE_GALLERY_RG_NAME} \
+            --gallery-image-definition ${ImageDefinition}
+          done
 
         env:
           ARM_CLIENT_ID: ${{ secrets.SpokeSvpClientId }}
@@ -74,8 +84,8 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.SpokeTenantId }}
           IMAGE_GALLERY_RG_NAME: ${{ matrix.IMAGE_GALLERY_RG_NAME }}
           IMAGE_GALLERY_NAME: ${{ matrix.IMAGE_GALLERY_NAME }}
-          IMAGE_DEFINITION_NAME: ${{ matrix.IMAGE_DEFINITION_NAME }}
         shell: bash
+
 
       - name: Libre DevOps - Run Terraform for Azure - GitHub Action
         id: terraform-build

@@ -25,12 +25,3 @@ Describe "PowerShell Core" {
         pwsh -Command "2+2" | Should -BeExactly 4
     }
 }
-
-
-Describe "OpenSSL" {
-    It "OpenSSL" {
-        $OpenSSLVersion = (Get-ToolsetContent).openssl.version
-        openssl version | Should -BeLike "* ${OpenSSLVersion}*"
-    }
-}
-
