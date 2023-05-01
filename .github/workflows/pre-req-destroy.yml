@@ -70,11 +70,6 @@ jobs:
               --gallery-image-definition ${ImageDefinition} \
               --gallery-image-version ${ImageVersionNumber}
             done
-
-            az sig image-definition delete \
-            --gallery-name ${IMAGE_GALLERY_NAME} \
-            --resource-group ${IMAGE_GALLERY_RG_NAME} \
-            --gallery-image-definition ${ImageDefinition}
           done
 
         env:
