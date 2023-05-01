@@ -283,6 +283,7 @@ build {
   provisioner "powershell" {
     environment_vars = ["INSTALL_USER=${var.install_user}"]
     scripts = [
+      "${path.root}/scripts/Installers/Run-NGen.ps1",
       "${path.root}/scripts/Installers/Finalize-VM.ps1"
     ]
     skip_clean = true
