@@ -4,12 +4,6 @@ Describe "7-Zip" {
     }
 }
 
-Describe "GitVersion" -Skip:(Test-isWin11) {
-    It "gitversion is installed" {
-        "gitversion /version" | Should -ReturnZeroExitCode
-    }
-}
-
 Describe "Jq" {
     It "Jq" {
         "jq -n ." | Should -ReturnZeroExitCode
