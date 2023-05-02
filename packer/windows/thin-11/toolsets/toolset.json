@@ -8,7 +8,7 @@
     "choco": {
         "common_packages": [
             { "name": "7zip.install" },
-            { "name": "gitversion.portable" },
+            { "name": "git.install" },
             { "name": "jq" },
             { "name": "microsoft-edge" },
             { "name": "powershell-core" },
